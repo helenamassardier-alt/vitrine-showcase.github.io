@@ -13,12 +13,23 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import pkg from "../../package.json";
+
 const CHUNK_DIR = path.resolve(process.cwd(), "static-content");
 
 export type ChunkName = "top" | "middle" | "bottom";
 
+// `2.0.0-beta.0` → `Bêta v2.0.0`; `2.0.0` → `v2.0.0`.
+// Pre-release tag (-beta.N) is internal; UI shows the word "Bêta" instead.
+function formatVersion(version: string): string {
+  const [core] = version.split("-");
+  const isBeta = version.includes("-beta");
+  return isBeta ? `Bêta v${core}` : `v${core}`;
+}
+
 export async function RawMaquette({ chunk }: { chunk: ChunkName }) {
   const file = path.join(CHUNK_DIR, `${chunk}.html`);
-  const html = await fs.readFile(file, "utf8");
+  const raw = await fs.readFile(file, "utf8");
+  const html = raw.replaceAll("__VERSION__", formatVersion(pkg.version));
   return <div dangerouslySetInnerHTML={{ __html: html }} />;
 }
