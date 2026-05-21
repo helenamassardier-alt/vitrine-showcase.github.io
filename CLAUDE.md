@@ -66,12 +66,15 @@ All refiners have `active: !isProd(envName)` — they run in DEV, not PROD. The 
 | `sonar` | Daily 07:00 | Sonar analysis |
 | `sonar-heatmaps` | Wednesdays 07:30 | Heatmaps |
 
-**Data refiners (produce Athena tables consumed by the site):**
+**Data refiners (produce Athena tables in `vitrine_datamart` / `agora_datamart`):**
+
+Not every output below is currently rendered by the site — `scripts/tables.json` is the authoritative whitelist of what's actually fetched into `public/data/`. Tables like `headline_of_headlines`, `reflet_*` and `federal_parties_score_day` are produced but currently `enabled: false`.
 
 | ECR name | Athena table(s) (DEV) | Schedule (Mtl local) | Source dir |
 |----------|-----------------------|---------------------|-----------|
 | `radar-issues-score` | `issues_score_day`, `issues_score_week`, `issues_score_month` | Day: 6×/day :31 · Week: daily 19:35 · Month: daily 19:39 | `refiners/radar-issues-score/` |
-| `radar-headlines-issues` | `headline_events_4h` (and weekly/monthly variants) | Day: 3×/day 11:46, 15:46, 19:46 · Week: daily 19:17 · Month: daily 19:20 | `refiners/radar-headlines-issues/` |
+| `radar-event-salience` | `headline_events_4h` | 6×/day :51 | `refiners/radar-event-salience/` |
+| `radar-headlines-issues` | `headlines_issues_day`, `headlines_issues_week`, `headlines_issues_month` (upstream-only — feeds `radar-reflet-daily-weekly`, not currently enabled in `tables.json`) | Day: 3×/day 11:46, 15:46, 19:46 · Week: daily 19:17 · Month: daily 19:20 | `refiners/radar-headlines-issues/` |
 | `radar-party-score` | `provincial_parties_score_day/week/month`, `federal_parties_score_day/week/month` | Day: 6×/day :46 · Week: daily 19:35 · Month: daily 19:39 | `refiners/radar-party-score/` |
 | `radar-party-score-salient-shadow` | `provincial_parties_score_salient_shadow_*` | Day: 6×/day :31 · Week: daily 19:35 · Month: daily 19:39 | `refiners/radar-party-score-salient-shadow/` |
 | `radar-reflet-daily-weekly` | `reflet_day`, `reflet_week` | Day: 3×/day 11:46, 15:46, 19:46 · Week: daily 19:37 | `refiners/radar-reflet-daily-weekly/` |
@@ -224,7 +227,7 @@ Data is pulled from AWS Athena every 4 hours by `scripts/fetch_data.R`, run via 
 
 Several table definitions sit dormant in `scripts/tables.json` with `enabled: false` — the inventory of what's available to switch on when a new section is built (federal partis, reflet summaries, headline events).
 
-**Note:** `scripts/fetch_data.R` currently appends `[skip ci]` to its commit messages to keep the GitHub Pages deploy from rebuilding on every 4h refresh. Whether to remove this is tied to the hosting decision; see `docs/cloudflare-pages-migration.md`.
+**Commits from the data refresher** are made by [`refresh-data.yml`](./.github/workflows/refresh-data.yml) with the message `data: refresh <ISO timestamp>` (no `[skip ci]`). Each refresh therefore triggers `deploy.yml` and rebuilds GitHub Pages. The Cloudflare Pages migration (see [`docs/cloudflare-pages-migration.md`](./docs/cloudflare-pages-migration.md)) would change this.
 
 ---
 
@@ -266,7 +269,7 @@ These match `ISSUE_COLORS` and `ISSUE_LABELS_SHORT` in `lib/data/headlineEvents.
 
 ## headline_events_4h schema
 
-The `radar-headlines-issues` refiner produces `headline_events_4h` — one row per event per time interval per region. Published as `public/data/headline-events.json`. Consumed by `loadHeadlineEvents()` for `UneDesUnesSection`.
+The `radar-event-salience` refiner produces `headline_events_4h` — one row per `(event, target_region)` for each 4h interval (so each event_id can appear up to 3 times: once per region). Published as `public/data/headline-events.json`; `loadHeadlineEvents()` deduplicates by `event_id` (preferring `target_region === "QC"`) and filters out events whose primary `country_id === "USA"`. Consumed by `UneDesUnesSection`. See [`aws-refiners/refiners/radar-event-salience/README.md`](https://github.com/ellipse-science/aws-refiners/blob/develop/refiners/radar-event-salience/README.md) for the full clustering methodology (saillance-weighted cosine + title Jaccard, threshold 0.30; 2nd-pass merge on event-level cosine ≥ 0.20 OR top-5 object Jaccard ≥ 0.40).
 
 Key columns used by the frontend:
 
@@ -275,7 +278,7 @@ Key columns used by the frontend:
 | `event_id` | Deduplicated — QC `target_region` row preferred over others |
 | `country_id` | `"QC"`, `"CAN"`, `"USA"` — USA rows filtered out |
 | `date_utc`, `date_montreal_tz` | Date of the interval |
-| `time_interval_utc`, `time_interval_montreal_tz` | e.g. `"19-23"` |
+| `time_interval_utc`, `time_interval_montreal_tz` | 4h block, zero-padded — one of `"00-04"`, `"04-08"`, `"08-12"`, `"12-16"`, `"16-20"`, `"20-24"` |
 | `title` | Event headline |
 | `main_issue` | English issue key (e.g. `"economy_and_labour"`) |
 | `main_issue_text_fr` | French label from refiner |
