@@ -1,31 +1,31 @@
 {
-  "generated_at": "2026-06-11T16:05Z",
-  "date_utc": "2026-06-11",
-  "time_interval_utc": "12-16",
-  "prompt": "Genre: Dark Ambient. BPM: 60. Key: D minor. Instruments: Synth pads, deep bass, ethereal choir. Mood: Tense and mysterious, with a sense of unease and foreboding. Layers of sound create an atmosphere of intrigue and secrecy.",
+  "generated_at": "2026-06-13T12:05Z",
+  "date_utc": "2026-06-13",
+  "time_interval_utc": "08-12",
+  "prompt": "Genre: Ambient electronic. BPM: 70. Key: D minor. Instruments: Synth pads, subtle percussion, atmospheric strings. Mood: Tense, somber. Capture the weight of unrest and uncertainty with a haunting melody, blending melancholic undertones with a feeling of unresolved tension.",
   "gems": {
-    "wonder": 20,
-    "transcendence": 10,
-    "tenderness": 5,
-    "nostalgia": 15,
+    "wonder": 10,
+    "transcendence": 5,
+    "tenderness": 15,
+    "nostalgia": 5,
     "peacefulness": 10,
-    "energy": 30,
-    "joyful_activation": 10,
-    "sadness": 25,
-    "tension": 60
+    "energy": 20,
+    "joyful_activation": 5,
+    "sadness": 70,
+    "tension": 85
   },
   "headlines": [
     {
-      "title": "Congédiement au ministère pour fuite d'informations sur des investissements",
-      "weight": 43
+      "title": "Quinze policiers montréalais suspendus pour gestes racistes et haineux",
+      "weight": 42
     },
     {
-      "title": "Québec ajuste sa cible de ventes de véhicules électriques",
-      "weight": 30
+      "title": "Le SPVM démantèle une équipe de policiers pour comportements racistes",
+      "weight": 35
     },
     {
-      "title": "Facebook : des vidéos de faux crimes québécois générées par IA",
-      "weight": 27
+      "title": "Enquête sur le racisme au SPVM : des agents suspendus",
+      "weight": 23
     }
   ]
 }
